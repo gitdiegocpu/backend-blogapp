@@ -1,22 +1,26 @@
-import express from 'express';
-import cors from 'cors';
-import { MongoClient } from 'mongodb';
-export const MONGO_URI = "mongodb+srv://gadifer54:HHntRKAx0pEOJiQy@myfirstcluster.dgdhoux.mongodb.net/?retryWrites=true&w=majority"
-
-
-
-const client= new MongoClient(MONGO_URI)
+import express from 'express'
+import cors from 'cors'
+import { MongoClient } from 'mongodb'
+import 'dotenv/config'
+const client = new MongoClient(process.env.MONGO_URI)
 const db = client.db('blogapp-c12')
-const BlogPosts = db.collection ('blog-post')
-
+const blogPosts = db.collection('blog-pot')
 client.connect()
 console.log('Connected to Mongo')
-
-
+const app = express()
+app.use(cors())
+app.use(express.json())
 app.get('/', async (req, res) => {
-const allPosts = await BlogPosts.find().toArray()
-console.log('allPosts ->', allPosts)
-res.json('here are someblog posts, not yet')
+    const allPosts = await blogPosts.find().toArray()
+    console.log('allPosts ->', allPosts)
+    res.send(allPosts)
 })
-
-app.listen('8080', () => console.log('Api listening on port 8080'))
+app.post('/', async (req, res) => {
+    console.log('req.body ->', req.body)
+    const newBlogPost = { title: req.body.title, content: req.body.content }
+    const addedItem = await blogPosts.insertOne(newBlogPost)
+    const allPosts = await blogPosts.find().toArray()
+    console.log('addedItem ->', addedItem)
+    res.send(allPosts)
+})
+app.listen(process.env.PORT || '8080', () => console.log('Api listening on port 8080 :sunglasses:'))
